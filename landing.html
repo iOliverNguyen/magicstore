@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flourish &amp; Blotts — The shortest possible webchat embed</title>
+    <meta
+      name="description"
+      content="A single standalone page for Flourish &amp; Blotts of Diagon Alley, with the Connectly webchat SDK embedded in one call."
+    />
+    <link rel="stylesheet" href="shared/shared.css" />
+
+    <!--
+      build-config.js is a plain synchronous classic script -- deliberately not
+      deferred, not a module, so `window.MAGICSTORE_BUILD` (if the build step
+      generated it) exists before the inline snippet below reads it, and so
+      this page (which imports nothing, see the snippet's own comment) can
+      read it without an import.
+
+      The other two sit in the head so the 1.2 MB bundle starts downloading
+      while the parser is still up here, and neither blocks it: `defer` for
+      the classic bundle, and `type="module"` for the snippet, which is
+      deferred by definition — plain inline scripts are not, and `defer` on
+      one is ignored, so an inline classic script here would run before the
+      bundle and find no global.
+
+      Non-async defer and module scripts share one queue and run in document
+      order, so ConnectlyWebchat is defined by the time init() is called below.
+    -->
+    <script src="shared/build-config.js"></script>
+    <script defer src="vendor/connectly-webchat.js"></script>
+    <script type="module">
+      // The simplest possible Connectly webchat embed: one config object, one call.
+      const params = new URLSearchParams(location.search);
+      const build = window.MAGICSTORE_BUILD;
+
+      // Host-aware defaults (see shared/webchat.js's isLocalHost()/defaultClientKey()/
+      // defaultApiBaseUrl(), duplicated here because this page deliberately imports
+      // nothing to share them from): on a local hostname (localhost, 127.0.0.1,
+      // [::1], or file://), clientKey stays the local dev key (see
+      // shared/webchat.js's WIDGET_DEFAULTS doc for what it is and where it comes
+      // from) and apiBaseUrl stays http://localhost:4004; everywhere else (i.e.
+      // hosted), clientKey defaults to the ACTIVE dev webchat client key (business
+      // "Connectly", 2d503e81-e270-4467-a05f-21a900efbbc1, channel
+      // 309b744a-16db-4acd-aaa3-82c61c0dd8a5) and apiBaseUrl to
+      // https://api.dev.connectly.ai. Both literals are also duplicated as
+      // placeholders in shared/shared.html and as the build-time pair in
+      // scripts/gen-build-config.mjs (the source of truth for that pair) —
+      // rotate all four together.
+      //
+      // Precedence, highest first: query param, then `window.MAGICSTORE_BUILD`
+      // (set above, if the build step generated it), then this hostname
+      // heuristic — mirroring shared/webchat.js's defaultApiBaseUrl()/
+      // defaultClientKey(). Optional chaining on `build`: nothing stops this
+      // page from being served with no generated config at all.
+      const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', '']);
+      const isLocalHost = LOCAL_HOSTNAMES.has(location.hostname);
+
+      // Optional chaining: before `start:magicstore` has synced vendor/, the bundle
+      // (and so this global) is missing — fail quietly instead of an uncaught
+      // ReferenceError.
+      window.ConnectlyWebchat?.init({
+        // The channel's public client key — the only value a real site must supply.
+        clientKey:
+          params.get('clientKey') ||
+          build?.clientKey ||
+          (isLocalHost
+            ? 'expecto_patronum_wingardium_leviosa'
+            : 'SKoOimb6xSgq8jqvQ03Rqia5HMqCGfPyljlLLvgIcaKtmKOO4i'),
+        // grpc-gateway origin.
+        apiBaseUrl:
+          params.get('apiBaseUrl') ||
+          build?.apiBaseUrl ||
+          (isLocalHost ? 'http://localhost:4004' : 'https://api.dev.connectly.ai'),
+        // Panel header text.
+        title: 'Flourish & Blotts',
+        // Panel size. Omit for the SDK's 360x520; both still clamp to the viewport.
+        width: '380px',
+        height: '560px',
+      });
+      // No wsUrl on purpose: the realtime endpoint arrives on the session mint.
+      // Passing one here takes the SDK's dev-override branch and the server's value
+      // could never be used.
+      //
+      // init() does not need <body> to exist yet — it mounts on DOMContentLoaded if
+      // it has to — so calling it from the head is safe.
+    </script>
+  </head>
+  <body data-page="landing">
+    <a class="skip-link" href="#main">Skip to the shop</a>
+
+    <header class="fascia">
+      <div class="fascia__board">
+        <div class="fascia__mark">
+          <a class="wordmark" href="./">Flourish &amp; Blotts</a>
+          <p class="tagline">
+            Purveyors of Fine Spellbooks
+            <span class="tagline__ornament" aria-hidden="true">&#10087;</span>
+            Diagon Alley
+          </p>
+        </div>
+
+        <!-- Hand-marked current: this page has no shared.js, so markActiveNav() never runs.
+             No Cart link either — the badge on it is painted by shared.js. -->
+        <nav class="nav" aria-label="Shop">
+          <a class="nav__link" href="./">Home</a>
+          <a class="nav__link" href="catalog.html">Catalog</a>
+          <a
+            class="nav__link is-current"
+            href="landing.html"
+            aria-current="page"
+            data-tip="You are on it: the smallest possible integration, one script tag and one ConnectlyWebchat.init() call in the head of this page's source."
+          >
+            One-call embed
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page" id="main">
+      <section class="hero">
+        <p class="eyebrow eyebrow--lead">Diagon Alley <span aria-hidden="true">&#10087;</span> Est. 1454</p>
+        <h1 class="hero__title">Every charm you were set.<br />Most of the ones you were not.</h1>
+        <p class="hero__lede">
+          Second frontage past Gringotts, the one with the bow window. Scrolls in the case by the door, set texts on the
+          front table, and the histories up the ladder where nobody volunteers to go. Ask at the counter and we will
+          find it faster than the shelf label suggests.
+        </p>
+        <p class="hero__acts">
+          <a class="btn btn--primary" href="catalog.html">Browse the shelves</a>
+          <a class="link-quiet" href="./">Back to the shopfront</a>
+        </p>
+      </section>
+
+      <section class="notes" aria-labelledby="notes-heading">
+        <h2 class="section__title" id="notes-heading">Before you come in</h2>
+        <div class="notes__grid">
+          <article class="note">
+            <h3 class="note__title">Term lists</h3>
+            <p class="note__body">
+              Bring the Hogwarts letter to the front table. We pull the whole year while you wait, and we will say so if
+              a title is on order rather than pretend otherwise.
+            </p>
+          </article>
+          <article class="note">
+            <h3 class="note__title">Owl delivery</h3>
+            <p class="note__body">
+              Anywhere in Britain by morning. Scrolls travel in a tube, books go out in oilcloth, and the heavier
+              histories take two owls and an apology to the second one.
+            </p>
+          </article>
+          <article class="note">
+            <h3 class="note__title">About the chat</h3>
+            <p class="note__body">
+              The chat panel in the corner is the Connectly webchat SDK talking to a local backend. It is the whole
+              integration on this page: one config object and one call, in the head of the source.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer__inner">
+        <section class="footer__col">
+          <h2 class="footer__head">Shop hours</h2>
+          <p class="footer__line">Monday to Saturday, 8am &ndash; 6pm. Sunday, 10am &ndash; 4pm.</p>
+          <p class="footer__line">On 1 September, until the last term list is filled.</p>
+        </section>
+
+        <section class="footer__col">
+          <h2 class="footer__head">Finding us</h2>
+          <p class="footer__line">
+            By Floo, say <em>&ldquo;Flourish and Blotts&rdquo;</em> clearly and mind the ash on the way out.
+          </p>
+          <p class="footer__line">Owl post to the third window on the left; scrolls travel in a tube.</p>
+        </section>
+      </div>
+
+      <p class="footer__rule">A demo shopfront for the Connectly webchat SDK. No Galleons will change hands.</p>
+    </footer>
+
+  </body>
+</html>

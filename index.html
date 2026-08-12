@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flourish &amp; Blotts — Spellbooks and scrolls, Diagon Alley</title>
+    <meta
+      name="description"
+      content="Flourish &amp; Blotts of Diagon Alley: single-cast spell scrolls and spellbooks, priced in Galleons."
+    />
+    <link rel="stylesheet" href="shared/shared.css" />
+
+    <!--
+      build-config.js is a plain synchronous classic script -- deliberately not
+      deferred, so window.MAGICSTORE_BUILD (if the build step generated it)
+      exists before anything below reads it. It's tiny, so briefly blocking the
+      parser for it is a non-issue.
+
+      The three below are the SDK integration proper, and sit in the head so
+      the 1.2 MB bundle starts downloading during head parsing; none of the
+      three blocks the parser: `defer` for the classic bundle, and the two
+      modules are deferred by definition. Non-async defer and module scripts
+      share one queue and run in document order, so the global exists before
+      webchat.js reads it, and shared.js still runs last — load-bearing, since
+      shared.js's top-level await delays its `magicstore:chrome-ready` dispatch
+      until after webchat.js has registered its listener for it. Swap the last
+      two script tags and the chat controls go silently dead.
+    -->
+    <script src="shared/build-config.js"></script>
+    <script defer src="vendor/connectly-webchat.js"></script>
+    <script type="module" src="shared/webchat.js"></script>
+    <script type="module" src="shared/shared.js"></script>
+  </head>
+  <body data-page="home">
+    <div data-slot="header"></div>
+
+    <main class="page" id="main">
+      <section class="hero">
+        <p class="eyebrow eyebrow--lead">Diagon Alley <span aria-hidden="true">&#10087;</span> Est. 1454</p>
+        <h1 class="hero__title">Spells by the scroll.<br />Books by the armful.</h1>
+        <p class="hero__lede">
+          Six single-cast scrolls in the case by the door, six titles along the back wall, and a ladder for the shelf
+          nobody can reach. Everything is priced in Galleons and paid for at the counter.
+        </p>
+        <p class="hero__acts">
+          <a class="btn btn--primary" href="catalog.html">Browse the shelves</a>
+          <a class="link-quiet" href="pages/cart.html">See what is in your bag</a>
+        </p>
+      </section>
+
+      <section class="display" aria-labelledby="display-heading">
+        <div class="display__head">
+          <p class="eyebrow">This week</p>
+          <h2 class="section__title" id="display-heading">In the window</h2>
+        </div>
+
+        <div class="window">
+          <div class="window__frame">
+            <div class="window__panes" data-featured>
+              <noscript>
+                <p class="pane pane--static">
+                  The window display is drawn by the shop&rsquo;s script. Turn JavaScript on, or walk through to the
+                  <a href="catalog.html">catalog</a>.
+                </p>
+              </noscript>
+            </div>
+            <span class="window__glass" aria-hidden="true"></span>
+          </div>
+          <div class="window__sill" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <section class="notes" aria-labelledby="notes-heading">
+        <h2 class="section__title" id="notes-heading">At the counter</h2>
+        <div class="notes__grid">
+          <article class="note">
+            <h3 class="note__title">Owl delivery</h3>
+            <p class="note__body">
+              Anywhere in Britain by morning. Scrolls travel in a tube, books go out in oilcloth, and the heavier
+              histories take two owls.
+            </p>
+          </article>
+          <article class="note">
+            <h3 class="note__title">Second-hand bay</h3>
+            <p class="note__body">
+              Back left, past the ladders. Annotated copies are priced by how useful the annotations turn out to be.
+            </p>
+          </article>
+          <article class="note">
+            <h3 class="note__title">Term lists</h3>
+            <p class="note__body">
+              Bring your Hogwarts letter to the front table and we will pull the whole year for you while you wait.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <div data-slot="footer"></div>
+  </body>
+</html>

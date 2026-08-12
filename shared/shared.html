@@ -1,0 +1,155 @@
+<!-- Header and footer for every page. Fetched once by shared.js and cloned into [data-slot]. -->
+
+<template data-fragment="header">
+  <a class="skip-link" href="#main">Skip to the shop</a>
+
+  <header class="fascia">
+    <div class="fascia__board">
+      <div class="fascia__mark">
+        <a class="wordmark" href="./">Flourish &amp; Blotts</a>
+        <p class="tagline">
+          Purveyors of Fine Spellbooks
+          <span class="tagline__ornament" aria-hidden="true">&#10087;</span>
+          Diagon Alley
+        </p>
+      </div>
+
+      <nav class="nav" aria-label="Shop">
+        <a class="nav__link" data-nav="home" href="./">Home</a>
+        <a class="nav__link" data-nav="catalog" href="catalog.html">Catalog</a>
+        <a class="nav__link" data-nav="cart" href="pages/cart.html">
+          Cart<span class="nav__badge" data-cart-badge hidden>0</span>
+        </a>
+        <!-- No data-nav: that page is standalone and never loads shared.js, so
+             markActiveNav() has nothing to mark there. -->
+        <a
+          class="nav__link"
+          href="landing.html"
+          data-tip="A standalone page carrying the smallest possible integration: one script tag and one ConnectlyWebchat.init() call, with the config written out in full. Nothing to configure, nothing to click."
+        >
+          One-call embed
+        </a>
+      </nav>
+    </div>
+
+    <div class="widget-bar">
+      <div class="widget-bar__row">
+        <!-- The two routes into the same widget, quietest first: a page that hard-codes
+             its config, then the panel you configure here. -->
+        <a
+          class="btn btn--brass"
+          href="landing.html"
+          data-tip="See the smallest possible integration: one script tag and one ConnectlyWebchat.init() call on a page that hard-codes its own config. No settings, no toggle — the snippet you would paste into a real site."
+        >
+          One-call embed<span aria-hidden="true">&#8250;</span>
+        </a>
+
+        <!-- data-chat-toggle, not data-action: webchat.js owns this button, not shared.js. -->
+        <button
+          class="btn btn--brass"
+          type="button"
+          data-chat-toggle
+          aria-pressed="false"
+          data-tip="Mount the widget on this page using the client key and API base URL below, so you can point the demo at a different backend and watch it reconnect. Press again to unmount it."
+        >
+          Init chat
+        </button>
+
+        <label
+          class="switch"
+          data-tip="Mount the widget automatically on every page load instead of pressing Init chat. Remembered in this browser."
+        >
+          <input class="switch__box" type="checkbox" data-widget-autoinit />
+          <span class="switch__text">Auto-init on refresh</span>
+        </label>
+
+        <p class="widget-bar__hint" data-chat-hint role="status" hidden></p>
+      </div>
+
+      <details class="settings">
+        <summary class="settings__summary">Connection settings</summary>
+        <div class="settings__grid">
+          <label class="field">
+            <span class="field__label">clientKey</span>
+            <!-- Placeholder describes the same host-aware default as
+                 WIDGET_DEFAULTS.clientKey in shared/webchat.js (and landing.html),
+                 and the build-time pair in scripts/gen-build-config.mjs (the source
+                 of truth for that pair) — rotate all four together. -->
+            <input
+              class="field__input"
+              type="text"
+              data-config="clientKey"
+              placeholder="auto: the dev key when hosted, the local key on localhost"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </label>
+          <label class="field">
+            <span class="field__label">apiBaseUrl</span>
+            <input
+              class="field__input"
+              type="url"
+              data-config="apiBaseUrl"
+              placeholder="auto: api.dev.connectly.ai when hosted, localhost:4004 in local dev"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </label>
+        </div>
+        <p class="settings__note">
+          Saved in this browser, and what is saved beats the defaults shown as placeholders —
+          so clear a field to fall back to the placeholder. The query params
+          <code>?clientKey=</code>, <code>?apiBaseUrl=</code> and <code>?autoInit=1</code>
+          override what is saved, and persist for the next reload.
+          There is no websocket setting: the backend hands the widget its realtime
+          endpoint when the session is minted.
+        </p>
+      </details>
+    </div>
+  </header>
+</template>
+
+<template data-fragment="footer">
+  <footer class="footer">
+    <div class="footer__inner">
+      <section class="footer__col">
+        <h2 class="footer__head">Shop hours</h2>
+        <dl class="hours">
+          <div class="hours__row">
+            <dt>Monday to Saturday</dt>
+            <dd>8am &ndash; 6pm</dd>
+          </div>
+          <div class="hours__row">
+            <dt>Sunday</dt>
+            <dd>10am &ndash; 4pm</dd>
+          </div>
+          <div class="hours__row">
+            <dt>1 September</dt>
+            <dd>Until the last term list is filled</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="footer__col">
+        <h2 class="footer__head">Finding us</h2>
+        <p class="footer__line">
+          By Floo, say <em>&ldquo;Flourish and Blotts&rdquo;</em> clearly and mind the ash on the way out.
+        </p>
+        <p class="footer__line">On foot, second frontage past Gringotts. The bow window is ours.</p>
+        <p class="footer__line">Owl post to the third window on the left; scrolls travel in a tube.</p>
+      </section>
+
+      <section class="footer__col">
+        <h2 class="footer__head">About the chat</h2>
+        <p class="footer__line">
+          The chat widget in the corner talks to a Connectly backend running on this machine. Start the backend, put
+          your client key into Connection settings at the top of the page, then choose Init chat.
+        </p>
+      </section>
+    </div>
+
+    <p class="footer__rule">A demo shopfront for the Connectly webchat SDK. No Galleons will change hands.</p>
+  </footer>
+
+  <div class="toast" data-toast data-state="off" role="status"></div>
+</template>
