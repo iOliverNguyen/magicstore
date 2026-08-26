@@ -28,56 +28,60 @@
       order, so ConnectlyWebchat is defined by the time init() is called below.
     -->
     <script src="shared/build-config.js"></script>
-    <script defer src="vendor/connectly-webchat.js"></script>
+    <script defer src="vendor/webchat2026.min.js"></script>
     <script type="module">
       // The simplest possible Connectly webchat embed: one config object, one call.
       const params = new URLSearchParams(location.search);
       const build = window.MAGICSTORE_BUILD;
 
-      // Host-aware defaults (see shared/webchat.js's isLocalHost()/defaultClientKey()/
-      // defaultApiBaseUrl(), duplicated here because this page deliberately imports
-      // nothing to share them from): on a local hostname (localhost, 127.0.0.1,
-      // [::1], or file://), clientKey stays the local dev key (see
-      // shared/webchat.js's WIDGET_DEFAULTS doc for what it is and where it comes
-      // from) and apiBaseUrl stays http://localhost:4004; everywhere else (i.e.
-      // hosted), clientKey defaults to the ACTIVE dev webchat client key (business
-      // "Connectly", 2d503e81-e270-4467-a05f-21a900efbbc1, channel
-      // 309b744a-16db-4acd-aaa3-82c61c0dd8a5) and apiBaseUrl to
-      // https://api.dev.connectly.ai. Both literals are also duplicated as
-      // placeholders in shared/shared.html and as the build-time pair in
-      // scripts/gen-build-config.mjs (the source of truth for that pair) —
-      // rotate all four together.
+      // Mirrors shared/webchat.js's defaultClientKey()/defaultApiBaseUrl(),
+      // duplicated here because this page deliberately imports nothing to share
+      // them from. Keep the two in step.
       //
-      // Precedence, highest first: query param, then `window.MAGICSTORE_BUILD`
-      // (set above, if the build step generated it), then this hostname
-      // heuristic — mirroring shared/webchat.js's defaultApiBaseUrl()/
-      // defaultClientKey(). Optional chaining on `build`: nothing stops this
-      // page from being served with no generated config at all.
+      // clientKey: query param, else the build config. No literal fallback — no
+      // client key is checked into this repo. The build config is written by
+      // scripts/gen-build-config.mjs from the examples/.env* files, and the live
+      // dev key lives only in the gitignored examples/.env.development+local.
+      //
+      // apiBaseUrl: query param, else the build config, else a hostname heuristic.
+      // The endpoint is not a secret, so it can keep that last fallback: on a local
+      // hostname (localhost, 127.0.0.1, [::1], or file://) it stays
+      // http://localhost:4004, everywhere else https://api.dev.connectly.ai.
+      //
+      // Optional chaining on `build`: nothing stops this page from being served
+      // with no generated config at all.
       const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', '']);
       const isLocalHost = LOCAL_HOSTNAMES.has(location.hostname);
 
-      // Optional chaining: before `start:magicstore` has synced vendor/, the bundle
-      // (and so this global) is missing — fail quietly instead of an uncaught
-      // ReferenceError.
-      window.ConnectlyWebchat?.init({
-        // The channel's public client key — the only value a real site must supply.
-        clientKey:
-          params.get('clientKey') ||
-          build?.clientKey ||
-          (isLocalHost
-            ? 'expecto_patronum_wingardium_leviosa'
-            : 'SKoOimb6xSgq8jqvQ03Rqia5HMqCGfPyljlLLvgIcaKtmKOO4i'),
-        // grpc-gateway origin.
-        apiBaseUrl:
-          params.get('apiBaseUrl') ||
-          build?.apiBaseUrl ||
-          (isLocalHost ? 'http://localhost:4004' : 'https://api.dev.connectly.ai'),
-        // Panel header text.
-        title: 'Flourish & Blotts',
-        // Panel size. Omit for the SDK's 360x520; both still clamp to the viewport.
-        width: '380px',
-        height: '560px',
-      });
+      const clientKey = params.get('clientKey') || build?.clientKey || '';
+      const apiBaseUrl =
+        params.get('apiBaseUrl') ||
+        build?.apiBaseUrl ||
+        (isLocalHost ? 'http://localhost:4004' : 'https://api.dev.connectly.ai');
+
+      if (!clientKey) {
+        // Mounting with '' would only fail later, against the backend. This page has
+        // no settings panel, so ?clientKey= is the only recovery.
+        console.error(
+          '[magicstore] no clientKey: build-config.js is missing or was generated without one. ' +
+            'Append ?clientKey=… , or rebuild (see examples/.env.development+local.example).',
+        );
+      } else {
+        // Optional chaining: before `start:magicstore` has synced vendor/, the bundle
+        // (and so this global) is missing — fail quietly instead of an uncaught
+        // ReferenceError.
+        window.ConnectlyWebchat?.init({
+          // The channel's public client key — the only value a real site must supply.
+          clientKey,
+          // grpc-gateway origin.
+          apiBaseUrl,
+          // Panel header text.
+          title: 'Flourish & Blotts',
+          // Panel size. Omit for the SDK's 360x520; both still clamp to the viewport.
+          width: '380px',
+          height: '560px',
+        });
+      }
       // No wsUrl on purpose: the realtime endpoint arrives on the session mint.
       // Passing one here takes the SDK's dev-override branch and the server's value
       // could never be used.
@@ -179,6 +183,5 @@
 
       <p class="footer__rule">A demo shopfront for the Connectly webchat SDK. No Galleons will change hands.</p>
     </footer>
-
   </body>
 </html>

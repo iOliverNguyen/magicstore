@@ -5,7 +5,7 @@
  * you need: it reads and persists the connection settings, mounts and unmounts
  * the panel, and keeps the header controls honest. It imports nothing and
  * depends on nothing but `window.ConnectlyWebchat` (defined by the classic
- * /vendor/connectly-webchat.js script) and the `data-*` hooks in shared.html.
+ * /vendor/webchat2026.debug.js script) and the `data-*` hooks in shared.html.
  *
  * Those hooks arrive late, because shared.js fetches the header and footer at
  * runtime. So the delegated listeners below are registered at module scope —
@@ -29,52 +29,30 @@ const STORE_KEYS = {
  * blank. There is no websocket entry: the realtime endpoint is server-owned and
  * arrives on the session mint, so this demo never names a broker.
  *
- * Both `clientKey` and `apiBaseUrl` resolve in this order:
+ * `clientKey` comes from exactly one place: `window.MAGICSTORE_BUILD`, set by
+ * `shared/build-config.js` — a classic (non-module) script loaded before this
+ * one, generated at BUILD time by `scripts/gen-build-config.mjs` from the
+ * `examples/.env*` files. No key is hardcoded here or anywhere else in the tree.
+ * The live dev key lives only in `examples/.env.development+local`, which is
+ * gitignored; `examples/.env` carries the seeded local key, which is inert
+ * outside a locally-provisioned backend and so is safe to check in.
  *
- *  1. `window.MAGICSTORE_BUILD` — the backend target picked at BUILD time by
- *     `pnpm build:local:magicstore` / `pnpm build:dev:magicstore`, stamped
- *     into `shared/build-config.js` by `scripts/gen-build-config.mjs`. This is
- *     a classic (non-module) script, loaded before this one, so the global —
- *     when present — is already set by the time these functions run. Guard
- *     every read with `?.`: `pnpm start:magicstore` serves `examples/` with
- *     only the local config generated, but nothing stops that file from being
- *     absent entirely, and this heuristic below must still work then.
- *  2. The `isLocalHost()` hostname heuristic — the fallback of last resort,
- *     for whenever there is no generated config at all: this demo is deployed
- *     as a static resource with no server-side templating, and it can be
- *     mounted at any host and any URL sub-path, so the only signal available
- *     at load time is whether `window.location.hostname` looks local.
- *     `isLocalHost()` below is the one place that checks it; everything else
- *     asks that function.
+ * Guard every read with `?.` and expect `''`: nothing stops these pages from
+ * being served with no generated config at all (a bare `http-server` over
+ * `examples/`, or `file://`). An empty key is not fatal — `openChat()` refuses
+ * to mount without one, and the settings panel and `?clientKey=` still work.
  *
- * When hosted (anything that is not a local hostname):
- *  - `clientKey` falls back to `SKoOimb6xSgq8jqvQ03Rqia5HMqCGfPyljlLLvgIcaKtmKOO4i`,
- *    the ACTIVE webchat client key for business "Connectly"
- *    (`2d503e81-e270-4467-a05f-21a900efbbc1`) on dev, bound to the single dev
- *    webchat channel `309b744a-16db-4acd-aaa3-82c61c0dd8a5`. The local literal
- *    below is not provisioned there, so it would not work.
- *  - `apiBaseUrl` falls back to the dev grpc-gateway, `https://api.dev.connectly.ai`.
+ * `apiBaseUrl` is not a secret, so it keeps a second fallback below the build
+ * config: the `isLocalHost()` hostname heuristic. This demo is deployed as a
+ * static resource with no server-side templating and can be mounted at any host
+ * and sub-path, so hostname is the only signal available at load time.
+ * `isLocalHost()` is the one place that checks it; everything else asks it.
  *
- * On localhost (and other local hostnames — see LOCAL_HOSTNAMES):
- *  - `clientKey` falls back to `expecto_patronum_wingardium_leviosa`, a real
- *    local dev key, not a placeholder string: it is `defaultClientKey` in the
- *    backend repo at `scripts/webchat/init-client-key/main.go`, "deliberately
- *    human-readable and stable so js/webchat-debug/config.json and the
- *    frontend SDK can hardcode it across DB resets". It binds to the seeded
- *    local "Connectly AI" business (`2d503e81-e270-4467-a05f-21a900efbbc1`)
- *    from `base/db/migrations/20210520072606_bootstrap_data.up.sql`, and only
- *    works against a local backend that has run that provisioning script —
- *    it is inert anywhere else, including when hosted.
- *  - `apiBaseUrl` keeps the local dev default, `http://localhost:4004`.
+ * `landing.html` repeats the same resolution inline — it deliberately imports
+ * nothing, so it cannot share these functions. Keep the two in step.
  *
- * Both literals are also hardcoded in `landing.html` (which imports nothing,
- * so it cannot share these constants, including the host check), as the
- * `placeholder`s on the clientKey/apiBaseUrl fields in `shared.html`, and in
- * `scripts/gen-build-config.mjs`, which is the source of truth for the
- * build-time pair. Rotate all four together.
- *
- * This only changes the *defaults* — resolveConfig()'s precedence (query
- * param > localStorage > this default) is unchanged for both fields.
+ * This only sets the *defaults* — resolveConfig()'s precedence (query param >
+ * localStorage > this default) is unchanged for both fields.
  */
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', '']);
 
@@ -89,10 +67,7 @@ function defaultApiBaseUrl() {
 }
 
 function defaultClientKey() {
-  if (window.MAGICSTORE_BUILD?.clientKey) return window.MAGICSTORE_BUILD.clientKey;
-  return isLocalHost()
-    ? 'expecto_patronum_wingardium_leviosa'
-    : 'SKoOimb6xSgq8jqvQ03Rqia5HMqCGfPyljlLLvgIcaKtmKOO4i';
+  return window.MAGICSTORE_BUILD?.clientKey ?? '';
 }
 
 const WIDGET_DEFAULTS = {
@@ -100,8 +75,6 @@ const WIDGET_DEFAULTS = {
   apiBaseUrl: defaultApiBaseUrl(),
   autoInit: '0',
 };
-
-const CHAT_TITLE = 'Flourish & Blotts';
 
 /* ------------------------------------------------------------------ *
  * Chat widget control
@@ -134,15 +107,19 @@ function setHint(message) {
   hint.hidden = message === '';
 }
 
-const isChatMounted = () => Boolean(window.ConnectlyWebchat && window.ConnectlyWebchat.isMounted());
+// isOpen() ("is the panel showing"), not isMounted() ("is the widget present on the
+// page"): this button's label is about visibility, and once the widget is initialized
+// the element stays present (isMounted() stays true) even while the panel is closed.
+// See ConnectlyWebchat.isMounted's doc comment on this split.
+const isChatOpen = () => Boolean(window.ConnectlyWebchat && window.ConnectlyWebchat.isOpen());
 
 function syncChatToggle() {
   const toggle = document.querySelector('[data-chat-toggle]');
   if (!toggle) return;
-  const mounted = isChatMounted();
-  const label = mounted ? 'Close chat' : 'Init chat';
+  const open = isChatOpen();
+  const label = open ? 'Close chat' : 'Init chat';
   if (toggle.textContent !== label) toggle.textContent = label;
-  toggle.setAttribute('aria-pressed', String(mounted));
+  toggle.setAttribute('aria-pressed', String(open));
 }
 
 function openChat() {
@@ -160,15 +137,30 @@ function openChat() {
     clientKey: readStored('clientKey').trim() || WIDGET_DEFAULTS.clientKey,
     apiBaseUrl: readStored('apiBaseUrl').trim() || WIDGET_DEFAULTS.apiBaseUrl,
   };
+  // No key at all: the build config is missing or was generated without one (the
+  // dev key is not checked in — see WIDGET_DEFAULTS above). Mounting with '' would
+  // just fail against the backend with a less obvious message.
+  if (!config.clientKey) {
+    setHint(
+      'No clientKey. Paste one in Connection settings, add ?clientKey=… , or rebuild with pnpm build:dev:magicstore.',
+    );
+    return;
+  }
   setHint('');
-  // onMountedChange keeps the toggle label honest without polling — it fires on
-  // this mount, on toggleChat()'s destroy() below, and on the panel's own ×
-  // button, which calls that same destroy().
-  window.ConnectlyWebchat.init({ ...config, title: CHAT_TITLE, onMountedChange: syncChatToggle });
+  // `open: true` opens the panel as soon as it mounts, matching this button's
+  // "click to open" role instead of leaving a bare launcher behind. onOpenChange keeps
+  // the toggle label honest without polling — it fires whenever the panel's own ×
+  // button (or anything else) closes it, from the `connectly-webchat:close` event.
+  // No `title` override: the panel title comes from the merchant's widget_ui (panel.title),
+  // so the demo reflects the configured header instead of masking it.
+  window.ConnectlyWebchat.init({ ...config, open: true, onOpenChange: syncChatToggle });
 }
 
 function toggleChat() {
-  if (isChatMounted()) {
+  if (isChatOpen()) {
+    // A full teardown, not a close: this drops the session on purpose, so the next
+    // open() mints a fresh one. onOpenChange still fires — destroy() emits `close` on
+    // the way out when the panel was showing — so the label needs no help here.
     window.ConnectlyWebchat.destroy();
     return;
   }

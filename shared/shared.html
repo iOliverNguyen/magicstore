@@ -71,15 +71,14 @@
         <div class="settings__grid">
           <label class="field">
             <span class="field__label">clientKey</span>
-            <!-- Placeholder describes the same host-aware default as
-                 WIDGET_DEFAULTS.clientKey in shared/webchat.js (and landing.html),
-                 and the build-time pair in scripts/gen-build-config.mjs (the source
-                 of truth for that pair) — rotate all four together. -->
+            <!-- Placeholder describes WIDGET_DEFAULTS.clientKey in shared/webchat.js:
+                 the key comes from the generated shared/build-config.js and nowhere
+                 else, so it is blank when the build step did not supply one. -->
             <input
               class="field__input"
               type="text"
               data-config="clientKey"
-              placeholder="auto: the dev key when hosted, the local key on localhost"
+              placeholder="auto: from the build config, else empty — paste a key here"
               autocomplete="off"
               spellcheck="false"
             />
