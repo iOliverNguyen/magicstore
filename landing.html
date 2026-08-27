@@ -34,37 +34,66 @@
       const params = new URLSearchParams(location.search);
       const build = window.MAGICSTORE_BUILD;
 
-      // Mirrors shared/webchat.js's defaultClientKey()/defaultApiBaseUrl(),
-      // duplicated here because this page deliberately imports nothing to share
-      // them from. Keep the two in step.
+      // Mirrors ../src/config.ts's defaultClientKey(), duplicated here because this
+      // page deliberately imports nothing to share it from — that is the whole point
+      // of it, and it is why this page is a plain document in public/ that the
+      // bundler never touches. Keep the CLIENT KEY precedence in step.
+      //
+      // The apiBaseUrl resolution below has no counterpart there any more: the React
+      // app imports @connectly/webchat, which bakes its origin at build time, so
+      // config.ts resolves no origin and offers no setting for one. This page still
+      // needs one because ConnectlyWebchat.init() takes it.
+      //
+      // No gate on the query param here, and none is needed: the bundle enforces it
+      // one level down. Every embed bundle built for a hosted mode (development,
+      // production — both flavors, see apps/webchat2026/vite.config.ts) is built with
+      // forced: true and ignores the value below. Only the localhost build honours it.
       //
       // clientKey: query param, else the build config. No literal fallback — no
       // client key is checked into this repo. The build config is written by
       // scripts/gen-build-config.mjs from the examples/.env* files, and the live
       // dev key lives only in the gitignored examples/.env.development+local.
       //
-      // apiBaseUrl: query param, else the build config, else a hostname heuristic.
-      // The endpoint is not a secret, so it can keep that last fallback: on a local
-      // hostname (localhost, 127.0.0.1, [::1], or file://) it stays
-      // http://localhost:4004, everywhere else https://api.dev.connectly.ai.
+      // apiBaseUrl: query param, else the build config, else — on a LOCAL hostname
+      // only — http://localhost:4004. There is deliberately no remote fallback.
+      //
+      // This page used to fall back to the DEV gateway on any non-local hostname
+      // (that host is deliberately not spelled out here -- the string would then
+      // be shipped inside every prod/ copy of this page, which is the same class
+      // of wrongness). That fallback dated from a dev-only world; this page is now
+      // copied verbatim into all six target directories, including prod/, so it
+      // baked the dev gateway into a production page. It was inert in
+      // practice — every hosted bundle is built forced, so the value below is
+      // refused and logged, and the origin comes from the bundle — but a page that
+      // names the wrong gateway on the deployed artifact is wrong-looking in a way
+      // someone will eventually trust. Naming NO gateway is honest and fails
+      // visibly: '' hits the empty-string branch below and says so in the console,
+      // instead of quietly reaching for a backend nobody chose.
       //
       // Optional chaining on `build`: nothing stops this page from being served
-      // with no generated config at all.
+      // with no generated config at all — which is precisely when the fallback used
+      // to matter, and precisely when guessing is worst.
       const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', '']);
       const isLocalHost = LOCAL_HOSTNAMES.has(location.hostname);
 
       const clientKey = params.get('clientKey') || build?.clientKey || '';
       const apiBaseUrl =
-        params.get('apiBaseUrl') ||
-        build?.apiBaseUrl ||
-        (isLocalHost ? 'http://localhost:4004' : 'https://api.dev.connectly.ai');
+        params.get('apiBaseUrl') || build?.apiBaseUrl || (isLocalHost ? 'http://localhost:4004' : '');
 
-      if (!clientKey) {
+      if (!clientKey || !apiBaseUrl) {
         // Mounting with '' would only fail later, against the backend. This page has
-        // no settings panel, so ?clientKey= is the only recovery.
+        // no settings panel, so a query param is the only recovery. Both values are
+        // gated together because the recovery is the same and neither has a safe
+        // default: there is no client key in this repo, and guessing a gateway is
+        // what this page stopped doing (see above). A hosted bundle ignores the
+        // origin anyway, so on a deployed page a missing apiBaseUrl really only
+        // signals that build-config.js never arrived.
         console.error(
-          '[magicstore] no clientKey: build-config.js is missing or was generated without one. ' +
-            'Append ?clientKey=… , or rebuild (see examples/.env.development+local.example).',
+          '[magicstore] cannot init: ' +
+            [!clientKey && 'no clientKey', !apiBaseUrl && 'no apiBaseUrl'].filter(Boolean).join(' and ') +
+            '. build-config.js is missing or was generated without them. Append ?clientKey=… ' +
+            '(and ?apiBaseUrl=… on a non-local host), or rebuild (see ' +
+            'examples/.env.development+local.example).',
         );
       } else {
         // Optional chaining: before `start:magicstore` has synced vendor/, the bundle
@@ -104,11 +133,13 @@
           </p>
         </div>
 
-        <!-- Hand-marked current: this page has no shared.js, so markActiveNav() never runs.
-             No Cart link either — the badge on it is painted by shared.js. -->
+        <!-- Hand-marked current, and a shorter nav than the shop's: this page is a
+             separate document from the React app, so it has neither the app's nav
+             component nor its cart store to paint a badge with. The two shop links
+             below point at the app's hash routes. -->
         <nav class="nav" aria-label="Shop">
           <a class="nav__link" href="./">Home</a>
-          <a class="nav__link" href="catalog.html">Catalog</a>
+          <a class="nav__link" href="./#/catalog">Catalog</a>
           <a
             class="nav__link is-current"
             href="landing.html"
@@ -131,7 +162,7 @@
           find it faster than the shelf label suggests.
         </p>
         <p class="hero__acts">
-          <a class="btn btn--primary" href="catalog.html">Browse the shelves</a>
+          <a class="btn btn--primary" href="./#/catalog">Browse the shelves</a>
           <a class="link-quiet" href="./">Back to the shopfront</a>
         </p>
       </section>
