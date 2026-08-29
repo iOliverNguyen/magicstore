@@ -1,4 +1,4 @@
-/*! webchat2026 1.1.0-484caeee */
+/*! webchat2026 1.1.0-91536174 (dirty) */
 (function() {
   "use strict";
   var _a;

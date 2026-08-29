@@ -1,4 +1,4 @@
-/*! @connectly/webchat 1.1.0-484caeee */
+/*! @connectly/webchat 1.1.0-91536174 (dirty) */
 function nr(c) {
   const l = new Error(c);
   return l.source = "ulid", l;
