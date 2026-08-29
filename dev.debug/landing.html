@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flourish &amp; Blotts — The shortest possible webchat embed</title>
+    <meta
+      name="description"
+      content="A single standalone page for Flourish &amp; Blotts of Diagon Alley, with the Connectly webchat SDK embedded in one call."
+    />
+    <link rel="stylesheet" href="shared/shared.css" />
+
+    <!--
+      build-config.js is a plain synchronous classic script -- deliberately not
+      deferred, not a module, so `window.MAGICSTORE_BUILD` (if the build step
+      generated it) exists before the inline snippet below reads it, and so
+      this page (which imports nothing, see the snippet's own comment) can
+      read it without an import.
+
+      The other two sit in the head so the 1.2 MB bundle starts downloading
+      while the parser is still up here, and neither blocks it: `defer` for
+      the classic bundle, and `type="module"` for the snippet, which is
+      deferred by definition — plain inline scripts are not, and `defer` on
+      one is ignored, so an inline classic script here would run before the
+      bundle and find no global.
+
+      Non-async defer and module scripts share one queue and run in document
+      order, so ConnectlyWebchat is defined by the time init() is called below.
+    -->
+    <script src="shared/build-config.js"></script>
+    <script defer src="vendor/webchat2026.debug.js"></script>
+    <script type="module">
+      // The simplest possible Connectly webchat embed: one config object, one call.
+      const params = new URLSearchParams(location.search);
+      const build = window.MAGICSTORE_BUILD;
+
+      // Mirrors ../src/config.ts's defaultClientKey(), duplicated here because this
+      // page deliberately imports nothing to share it from — that is the whole point
+      // of it, and it is why this page is a plain document in public/ that the
+      // bundler never touches. Keep the CLIENT KEY precedence in step.
+      //
+      // The apiBaseUrl resolution below has no counterpart there any more: the React
+      // app imports @connectly/webchat, which bakes its origin at build time, so
+      // config.ts resolves no origin and offers no setting for one. This page still
+      // needs one because ConnectlyWebchat.init() takes it.
+      //
+      // No gate on the query param here, and none is needed: the bundle enforces it
+      // one level down. Every embed bundle built for a hosted mode (development,
+      // production — both flavors, see apps/webchat2026/vite.config.ts) is built with
+      // forced: true and ignores the value below. Only the localhost build honours it.
+      //
+      // clientKey: query param, else the build config. No literal fallback — no
+      // client key is checked into this repo. The build config is written by
+      // scripts/gen-build-config.mjs from the examples/.env* files, and the live
+      // dev key lives only in the gitignored examples/.env.development+local.
+      //
+      // apiBaseUrl: query param, else the build config, else — on a LOCAL hostname
+      // only — http://localhost:4004. There is deliberately no remote fallback.
+      //
+      // This page used to fall back to the DEV gateway on any non-local hostname
+      // (that host is deliberately not spelled out here -- the string would then
+      // be shipped inside every prod/ copy of this page, which is the same class
+      // of wrongness). That fallback dated from a dev-only world; this page is now
+      // copied verbatim into all six target directories, including prod/, so it
+      // baked the dev gateway into a production page. It was inert in
+      // practice — every hosted bundle is built forced, so the value below is
+      // refused and logged, and the origin comes from the bundle — but a page that
+      // names the wrong gateway on the deployed artifact is wrong-looking in a way
+      // someone will eventually trust. Naming NO gateway is honest and fails
+      // visibly: '' hits the empty-string branch below and says so in the console,
+      // instead of quietly reaching for a backend nobody chose.
+      //
+      // Optional chaining on `build`: nothing stops this page from being served
+      // with no generated config at all — which is precisely when the fallback used
+      // to matter, and precisely when guessing is worst.
+      const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', '']);
+      const isLocalHost = LOCAL_HOSTNAMES.has(location.hostname);
+
+      const clientKey = params.get('clientKey') || build?.clientKey || '';
+      const apiBaseUrl =
+        params.get('apiBaseUrl') || build?.apiBaseUrl || (isLocalHost ? 'http://localhost:4004' : '');
+
+      if (!clientKey || !apiBaseUrl) {
+        // Mounting with '' would only fail later, against the backend. This page has
+        // no settings panel, so a query param is the only recovery. Both values are
+        // gated together because the recovery is the same and neither has a safe
+        // default: there is no client key in this repo, and guessing a gateway is
+        // what this page stopped doing (see above). A hosted bundle ignores the
+        // origin anyway, so on a deployed page a missing apiBaseUrl really only
+        // signals that build-config.js never arrived.
+        console.error(
+          '[magicstore] cannot init: ' +
+            [!clientKey && 'no clientKey', !apiBaseUrl && 'no apiBaseUrl'].filter(Boolean).join(' and ') +
+            '. build-config.js is missing or was generated without them. Append ?clientKey=… ' +
+            '(and ?apiBaseUrl=… on a non-local host), or rebuild (see ' +
+            'examples/.env.development+local.example).',
+        );
+      } else {
+        // Optional chaining: before `magicstore:start` has synced vendor/, the bundle
+        // (and so this global) is missing — fail quietly instead of an uncaught
+        // ReferenceError.
+        window.ConnectlyWebchat?.init({
+          // The channel's public client key — the only value a real site must supply.
+          clientKey,
+          // grpc-gateway origin.
+          apiBaseUrl,
+          // Panel header text.
+          title: 'Flourish & Blotts',
+          // Panel size. Omit for the SDK's 360x520; both still clamp to the viewport.
+          width: '380px',
+          height: '560px',
+        });
+      }
+      // No wsUrl on purpose: the realtime endpoint arrives on the session mint.
+      // Passing one here takes the SDK's dev-override branch and the server's value
+      // could never be used.
+      //
+      // init() does not need <body> to exist yet — it mounts on DOMContentLoaded if
+      // it has to — so calling it from the head is safe.
+    </script>
+  </head>
+  <body data-page="landing">
+    <a class="skip-link" href="#main">Skip to the shop</a>
+
+    <header class="fascia">
+      <div class="fascia__board">
+        <div class="fascia__mark">
+          <a class="wordmark" href="./">Flourish &amp; Blotts</a>
+          <p class="tagline">
+            Purveyors of Fine Spellbooks
+            <span class="tagline__ornament" aria-hidden="true">&#10087;</span>
+            Diagon Alley
+          </p>
+        </div>
+
+        <!-- Hand-marked current, and a shorter nav than the shop's: this page is a
+             separate document from the React app, so it has neither the app's nav
+             component nor its cart store to paint a badge with. The two shop links
+             below point at the app's hash routes. -->
+        <nav class="nav" aria-label="Shop">
+          <a class="nav__link" href="./">Home</a>
+          <a class="nav__link" href="./#/catalog">Catalog</a>
+          <a
+            class="nav__link is-current"
+            href="landing.html"
+            aria-current="page"
+            data-tip="You are on it: the smallest possible integration, one script tag and one ConnectlyWebchat.init() call in the head of this page's source."
+          >
+            One-call embed
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page" id="main">
+      <section class="hero">
+        <p class="eyebrow eyebrow--lead">Diagon Alley <span aria-hidden="true">&#10087;</span> Est. 1454</p>
+        <h1 class="hero__title">Every charm you were set.<br />Most of the ones you were not.</h1>
+        <p class="hero__lede">
+          Second frontage past Gringotts, the one with the bow window. Scrolls in the case by the door, set texts on the
+          front table, and the histories up the ladder where nobody volunteers to go. Ask at the counter and we will
+          find it faster than the shelf label suggests.
+        </p>
+        <p class="hero__acts">
+          <a class="btn btn--primary" href="./#/catalog">Browse the shelves</a>
+          <a class="link-quiet" href="./">Back to the shopfront</a>
+        </p>
+      </section>
+
+      <section class="notes" aria-labelledby="notes-heading">
+        <h2 class="section__title" id="notes-heading">Before you come in</h2>
+        <div class="notes__grid">
+          <article class="note">
+            <h3 class="note__title">Term lists</h3>
+            <p class="note__body">
+              Bring the Hogwarts letter to the front table. We pull the whole year while you wait, and we will say so if
+              a title is on order rather than pretend otherwise.
+            </p>
+          </article>
+          <article class="note">
+            <h3 class="note__title">Owl delivery</h3>
+            <p class="note__body">
+              Anywhere in Britain by morning. Scrolls travel in a tube, books go out in oilcloth, and the heavier
+              histories take two owls and an apology to the second one.
+            </p>
+          </article>
+          <article class="note">
+            <h3 class="note__title">About the chat</h3>
+            <p class="note__body">
+              The chat panel in the corner is the Connectly webchat SDK talking to a local backend. It is the whole
+              integration on this page: one config object and one call, in the head of the source.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer__inner">
+        <section class="footer__col">
+          <h2 class="footer__head">Shop hours</h2>
+          <p class="footer__line">Monday to Saturday, 8am &ndash; 6pm. Sunday, 10am &ndash; 4pm.</p>
+          <p class="footer__line">On 1 September, until the last term list is filled.</p>
+        </section>
+
+        <section class="footer__col">
+          <h2 class="footer__head">Finding us</h2>
+          <p class="footer__line">
+            By Floo, say <em>&ldquo;Flourish and Blotts&rdquo;</em> clearly and mind the ash on the way out.
+          </p>
+          <p class="footer__line">Owl post to the third window on the left; scrolls travel in a tube.</p>
+        </section>
+      </div>
+
+      <p class="footer__rule">A demo shopfront for the Connectly webchat SDK. No Galleons will change hands.</p>
+    </footer>
+  </body>
+</html>
