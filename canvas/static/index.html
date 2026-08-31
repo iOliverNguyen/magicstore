@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Connectly webchat — script tag integration</title>
+    <meta name="description" content="The Connectly webchat widget embedded with one script tag and one init() call." />
+
+    <!--
+      build-config.js is a plain synchronous classic script — deliberately not deferred
+      and not a module, so `window.MAGICSTORE_BUILD` exists before anything below reads
+      it. (Its magicstore-shaped name is explained in src/canvas-build.d.ts: one demo key
+      per gateway, one generator.)
+    -->
+    <script src="../shared/build-config.js"></script>
+
+    <!--
+      THE EMBED BUNDLE. `defer` and in the head, exactly as a merchant pastes it: the
+      1.2 MB download starts while the parser is still up here, and nothing blocks on it.
+
+      This page vendors the MIN bundle (dist/embed/<target>/webchat2026.min.js), not the
+      debug one examples/magicstore uses. That is the artifact customers are actually
+      served, and the only thing the debug flavor would buy on a page whose whole job is
+      to show the snippet is a nicer stack trace nobody here is reading.
+    -->
+    <script defer src="../vendor/webchat2026.min.js"></script>
+    <script type="module" crossorigin src="../assets/static-DG_0W7mN.js"></script>
+    <link rel="modulepreload" crossorigin href="../assets/canvas-CCax_SZo.js">
+    <link rel="modulepreload" crossorigin href="../assets/controls-EpAd24s8.js">
+    <link rel="stylesheet" crossorigin href="../assets/canvas-LTTc7tDR.css">
+  </head>
+  <body>
+    <canvas class="pg-canvas" id="pg-canvas" aria-hidden="true"></canvas>
+
+    <div class="pg-shell">
+      <header class="pg-head">
+        <p class="pg-head__eyebrow">Script tag</p>
+        <h1 class="pg-head__title">No build step.</h1>
+        <p class="pg-head__lede">
+          One <code>&lt;script src&gt;</code> in the head and one <code>ConnectlyWebchat.init()</code> call. This is the
+          path for a CMS, a page builder, a static site or a tag manager — anywhere you can paste a script tag but do
+          not have a bundler. Everything below the fold is this demo's own control panel, not part of the integration.
+        </p>
+        <nav class="pg-head__nav">
+          <a href="../">All integrations</a>
+          <a href="../react/">React</a>
+        </nav>
+      </header>
+
+      <div id="pg-controls"></div>
+    </div>
+
+    <!--
+      THE INTEGRATION, and the whole of it.
+
+      ORDER IS LOAD-BEARING, and it is the reason this is a `type="module"` script rather
+      than a plain inline one. A non-async `defer` classic script and a module script
+      share ONE queue and run in document order, so the bundle above has finished
+      executing — and `window.ConnectlyWebchat` exists — by the time this runs. A plain
+      inline classic script is NOT deferred (and `defer` on an inline script is ignored),
+      so it would run first, at parse time, and find no global at all.
+
+      The imports are this demo reading its own resolved client key and saved config. A
+      real page writes literals here; see the output box below for what that looks like.
+    -->
+
+    <!--
+      The playground: canvas, controls, output box. Separate from the snippet above so
+      that block stays honestly copy-pasteable, and a file rather than inline so `tsc`
+      covers it.
+    -->
+  </body>
+</html>

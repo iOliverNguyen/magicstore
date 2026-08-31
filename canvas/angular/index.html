@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Connectly webchat — Angular integration</title>
+    <meta name="description" content="The Connectly webchat widget in Angular, with a live config playground." />
+    <!--
+      Same classic, non-deferred build-config script as the other pages. There is NO embed
+      bundle here: this page imports @connectly/webchat, which registers the element
+      itself. Loading both would be two launchers, two sessions and two sockets for one
+      visitor — see "One integration per page" in docs/README.npm.md.
+    -->
+    <script src="../shared/build-config.js"></script>
+    <script type="module" crossorigin src="../assets/angular-B7XIHiSu.js"></script>
+    <link rel="modulepreload" crossorigin href="../assets/canvas-CCax_SZo.js">
+    <link rel="modulepreload" crossorigin href="../assets/index-DKmvGo56.js">
+    <link rel="modulepreload" crossorigin href="../assets/controls-EpAd24s8.js">
+    <link rel="stylesheet" crossorigin href="../assets/canvas-LTTc7tDR.css">
+  </head>
+  <body>
+    <canvas class="pg-canvas" id="pg-canvas" aria-hidden="true"></canvas>
+
+    <div class="pg-shell">
+      <header class="pg-head">
+        <p class="pg-head__eyebrow">Angular</p>
+        <h1 class="pg-head__title">No wrapper. Just the tag.</h1>
+        <p class="pg-head__lede"><code>CUSTOM_ELEMENTS_SCHEMA</code> tells Angular to render the element rather than resolve it as a component. This page bootstraps JIT and zoneless so it stays inside plain Vite.</p>
+        <nav class="pg-head__nav">
+          <a href="../">All integrations</a>
+          <a href="../react/">React</a>
+          <a href="../static/">Script tag</a>
+        </nav>
+      </header>
+
+      <!--
+        An ELEMENT, not `<div id="pg-root">`. `bootstrapApplication` matches the
+        component's `selector` against the document, so an id is invisible to it and the
+        app fails at runtime with NG05104 ("did not match any elements") while the page
+        itself renders perfectly — the shell is static HTML, so the only missing piece is
+        the widget. This is the one place Angular differs from the other three bootstraps.
+      -->
+      <pg-root></pg-root>
+    </div>
+  </body>
+</html>

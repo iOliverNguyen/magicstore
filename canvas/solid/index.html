@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Connectly webchat — SolidJS integration</title>
+    <meta name="description" content="The Connectly webchat widget in SolidJS, with a live config playground." />
+    <!--
+      Same classic, non-deferred build-config script as the other pages. There is NO embed
+      bundle here: this page imports @connectly/webchat, which registers the element
+      itself. Loading both would be two launchers, two sessions and two sockets for one
+      visitor — see "One integration per page" in docs/README.npm.md.
+    -->
+    <script src="../shared/build-config.js"></script>
+    <script type="module" crossorigin src="../assets/solid-CdR3WQfK.js"></script>
+    <link rel="modulepreload" crossorigin href="../assets/canvas-CCax_SZo.js">
+    <link rel="modulepreload" crossorigin href="../assets/index-DKmvGo56.js">
+    <link rel="modulepreload" crossorigin href="../assets/controls-EpAd24s8.js">
+    <link rel="stylesheet" crossorigin href="../assets/canvas-LTTc7tDR.css">
+  </head>
+  <body>
+    <canvas class="pg-canvas" id="pg-canvas" aria-hidden="true"></canvas>
+
+    <div class="pg-shell">
+      <header class="pg-head">
+        <p class="pg-head__eyebrow">SolidJS</p>
+        <h1 class="pg-head__title">No wrapper. Just the tag.</h1>
+        <p class="pg-head__lede">Solid's JSX compiles to real DOM operations, so <code>&lt;connectly-webchat&gt;</code> is simply created and never diffed. Of the four, Solid is the closest fit to a custom element.</p>
+        <nav class="pg-head__nav">
+          <a href="../">All integrations</a>
+          <a href="../react/">React</a>
+          <a href="../static/">Script tag</a>
+        </nav>
+      </header>
+
+      <div id="pg-root"></div>
+    </div>
+  </body>
+</html>
