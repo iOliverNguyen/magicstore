@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Connectly webchat — Vue integration</title>
+    <meta name="description" content="The Connectly webchat widget in Vue, with a live config playground." />
+    <!--
+      Same classic, non-deferred build-config script as the other pages. There is NO embed
+      bundle here: this page imports @connectly/webchat, which registers the element
+      itself. Loading both would be two launchers, two sessions and two sockets for one
+      visitor — see "One integration per page" in docs/README.npm.md.
+    -->
+    <script src="../shared/build-config.js"></script>
+    <script type="module" crossorigin src="../assets/vue-UySGPMLU.js"></script>
+    <link rel="modulepreload" crossorigin href="../assets/state-CtlT4GHJ.js">
+    <link rel="modulepreload" crossorigin href="../assets/index-BoixucSs.js">
+    <link rel="modulepreload" crossorigin href="../assets/controls-CjL8lBuL.js">
+    <link rel="stylesheet" crossorigin href="../assets/state-B6H8PvdE.css">
+  </head>
+  <body>
+    <canvas class="pg-canvas" id="pg-canvas" aria-hidden="true"></canvas>
+
+    <div class="pg-shell">
+      <header class="pg-head">
+        <p class="pg-head__eyebrow">Vue</p>
+        <h1 class="pg-head__title">No wrapper. Just the tag.</h1>
+        <p class="pg-head__lede"><code>import '@connectly/webchat'</code> defines the custom element. Vue needs one line of build config — <code>isCustomElement</code> — and then renders it natively.</p>
+        <nav class="pg-head__nav">
+          <a class="pg-btn" href="../">All integrations</a>
+          <a class="pg-btn" href="../react/">React</a>
+          <a class="pg-btn" href="../static/">Script tag</a>
+        </nav>
+      </header>
+
+      <div id="pg-root"></div>
+      <!--
+        THE SITE FOOTER, in the markup on every page rather than rendered by a shared
+        `mountFooter()`.
+
+        Static content on a documentation site that has to be complete with scripts
+        disabled -- the same rule the spliced prose and the fallback snippet in `index.html`
+        follow. What that costs is seven copies of six lines; what a shared JS footer would
+        cost is a page whose attribution disappears in exactly the conditions the rest of
+        this site was built to survive.
+
+        The wordmark ships BLACK (it is the one Connectly publishes) and this page is dark,
+        so `.pg-foot__logo` inverts it -- see playground.css.
+      -->
+      <footer class="pg-foot">
+        <img class="pg-foot__logo" src="../brand/connectly.png" alt="Connectly" width="123" height="25" />
+        <p class="pg-foot__line">
+          &copy; 2025 All rights reserved. Connectly Inc. Engineered with
+          <span aria-hidden="true">&#10084;&#65039;</span><span class="pg-sr">love</span>, globally.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

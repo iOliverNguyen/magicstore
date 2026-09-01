@@ -1,0 +1,14 @@
+<!--
+  The one mark in this directory that is not somebody's brand: there is no logo for "a
+  script tag", so this is a `</>` glyph drawn to sit at the same optical weight as the five
+  framework marks beside it.
+
+  `currentColor`, unlike the others, which keep their own brand colours: this one has no
+  colour to be faithful to, and inheriting the button's text means it tracks the selected
+  and unselected states rather than sitting at one fixed grey through both.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="m8 6-6 6 6 6" />
+  <path d="m16 6 6 6-6 6" />
+  <path d="M14.5 3.5 9.5 20.5" />
+</svg>

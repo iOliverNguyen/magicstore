@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Connectly Webchat — documentation</title>
+    <meta
+      name="description"
+      content="Add the Connectly webchat widget to any site: a script tag or an npm package, the config and theming API, and six live integration playgrounds."
+    />
+    <!--
+      THE PUBLIC DOCUMENTATION SITE for the webchat widget, served at
+      https://webchat.connectly.ai/docs/ (and nested under /magicstore/canvas/dev/ on the
+      mirror, which is why `base` is relative in vite.config.ts).
+
+      There IS a widget on this page, and it is the script-tag integration -- the same one
+      the toggle row below selects by default. See `src/playground/index-page.ts` for why
+      it is mounted this way, why the panel starts closed, and why it is handed no config.
+    -->
+
+    <!--
+      build-config.js is a plain synchronous classic script — deliberately not deferred
+      and not a module, so `window.MAGICSTORE_BUILD` exists before anything below reads
+      it. (Its magicstore-shaped name is explained in src/canvas-build.d.ts: one demo key
+      per gateway, one generator.)
+    -->
+    <script src="./shared/build-config.js"></script>
+
+    <!--
+      THE EMBED BUNDLE, `defer` and in the head, exactly as a merchant pastes it — which
+      is the point: the integration this page documents first is the integration this page
+      itself uses.
+
+      ORDER IS LOAD-BEARING. A non-async `defer` classic script and a module script share
+      ONE queue and run in document order, so this bundle has finished executing — and
+      `window.ConnectlyWebchat` exists — by the time the module below runs. A plain inline
+      classic script is NOT deferred (and `defer` on an inline script is ignored), so it
+      would run first, at parse time, and find no global at all.
+    -->
+    <script defer src="./vendor/webchat2026.min.js"></script>
+
+    <script type="module" crossorigin src="./assets/index-xTRaQT8C.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/state-CtlT4GHJ.js">
+    <link rel="stylesheet" crossorigin href="./assets/state-B6H8PvdE.css">
+  </head>
+  <body>
+    <canvas class="pg-canvas" id="pg-canvas" aria-hidden="true"></canvas>
+
+    <div class="pg-shell">
+      <header class="pg-head">
+        <p class="pg-head__eyebrow">Connectly</p>
+        <h1 class="pg-head__title">Connectly Webchat</h1>
+        <p class="pg-head__lede">
+          A floating launcher and a chat panel you add to any page. The visitor types, the conversation lands in your
+          Connectly inbox. One script tag, or one import.
+        </p>
+      </header>
+
+      <!--
+        THE FRAMEWORK TOGGLE.
+
+        The grid is two rows: the six framework cards, and under each of them the link to
+        that framework's live playground. `.pg-switch__group` is `display: contents`, so the
+        radiogroup owns exactly the six radios -- the Customize links are grid children of
+        the row above them, not members of the group a screen reader arrows through.
+
+        Each card is its framework's own logo over its name, and each logo is an `<img>` to
+        a file in `public/brand/` rather than an inline `<svg>`: six inlined marks is about
+        11kB of paths in front of the prose, and these are trademarks, which are much easier
+        to keep faithful as verbatim files than as blocks pasted into markup. `alt=""`
+        because the name is right there in the button -- an alt of "React" would have a
+        screen reader say it twice.
+
+        Each Customize link carries a visually-hidden suffix, because six links all reading
+        "Customize" are indistinguishable in a screen reader's link list.
+      -->
+      <section class="pg-switch">
+        <div class="pg-switch__grid">
+          <div class="pg-switch__group" role="radiogroup" aria-label="Integration">
+            <button
+              type="button"
+              class="pg-btn pg-switch__btn"
+              role="radio"
+              aria-checked="true"
+              data-framework="static"
+            >
+              <img class="pg-switch__logo" src="./brand/static.svg" alt="" width="30" height="30" />
+              <span class="pg-switch__name">Script tag</span>
+            </button>
+            <button
+              type="button"
+              class="pg-btn pg-switch__btn"
+              role="radio"
+              aria-checked="false"
+              data-framework="react"
+            >
+              <img class="pg-switch__logo" src="./brand/react.svg" alt="" width="30" height="30" />
+              <span class="pg-switch__name">React</span>
+            </button>
+            <button
+              type="button"
+              class="pg-btn pg-switch__btn"
+              role="radio"
+              aria-checked="false"
+              data-framework="svelte"
+            >
+              <img class="pg-switch__logo" src="./brand/svelte.svg" alt="" width="30" height="30" />
+              <span class="pg-switch__name">Svelte</span>
+            </button>
+            <button
+              type="button"
+              class="pg-btn pg-switch__btn"
+              role="radio"
+              aria-checked="false"
+              data-framework="vue"
+            >
+              <img class="pg-switch__logo" src="./brand/vue.svg" alt="" width="30" height="30" />
+              <span class="pg-switch__name">Vue</span>
+            </button>
+            <button
+              type="button"
+              class="pg-btn pg-switch__btn"
+              role="radio"
+              aria-checked="false"
+              data-framework="solid"
+            >
+              <img class="pg-switch__logo" src="./brand/solid.svg" alt="" width="30" height="30" />
+              <span class="pg-switch__name">Solid</span>
+            </button>
+            <button
+              type="button"
+              class="pg-btn pg-switch__btn"
+              role="radio"
+              aria-checked="false"
+              data-framework="angular"
+            >
+              <img class="pg-switch__logo" src="./brand/angular.svg" alt="" width="30" height="30" />
+              <span class="pg-switch__name">Angular</span>
+            </button>
+          </div>
+
+          <a class="pg-btn pg-btn--ghost pg-switch__open" href="./static/"
+            >Customize<span class="pg-sr"> the script tag canvas</span></a
+          >
+          <a class="pg-btn pg-btn--ghost pg-switch__open" href="./react/"
+            >Customize<span class="pg-sr"> the React canvas</span></a
+          >
+          <a class="pg-btn pg-btn--ghost pg-switch__open" href="./svelte/"
+            >Customize<span class="pg-sr"> the Svelte canvas</span></a
+          >
+          <a class="pg-btn pg-btn--ghost pg-switch__open" href="./vue/"
+            >Customize<span class="pg-sr"> the Vue canvas</span></a
+          >
+          <a class="pg-btn pg-btn--ghost pg-switch__open" href="./solid/"
+            >Customize<span class="pg-sr"> the Solid canvas</span></a
+          >
+          <a class="pg-btn pg-btn--ghost pg-switch__open" href="./angular/"
+            >Customize<span class="pg-sr"> the Angular canvas</span></a
+          >
+        </div>
+      </section>
+
+      <section class="pg-integration" id="integration">
+        <div class="pg-integration__head">
+          <h2 class="pg__title">The whole integration</h2>
+          <!--
+            The Copy button is APPENDED HERE BY JS and is not server-rendered. A Copy
+            button that does nothing when scripts are off is worse than no button: it is a
+            control that lies. The snippet below, by contrast, ships in the markup.
+          -->
+          <div id="pg-integration-copy"></div>
+        </div>
+
+        <!--
+          Ships with the script-tag snippet ALREADY IN IT, so a reader with no JavaScript
+          still gets a correct, copyable integration — the property this page's build-time
+          docs splice exists to keep. It is a byte-for-byte match for what the `static`
+          generator emits for an empty config and no reader key; the module overwrites it
+          on first paint and on every toggle.
+        -->
+        <pre class="pg__code" id="pg-integration-code"><code>&lt;script defer src="https://webchat.connectly.ai/webchat2026.min.js"&gt;&lt;/script&gt;
+&lt;script type="module"&gt;
+  window.ConnectlyWebchat.init({
+    clientKey: '&lt;your-client-key&gt;',
+  });
+&lt;/script&gt;</code></pre>
+      </section>
+
+      <!--
+        Both of these are real `<a>` elements rather than buttons that set `location`:
+        middle-click, ⌘-click and "open in a new tab" are what that trade would cost, on
+        the two links this page most wants opened in a second tab.
+      -->
+      <p class="pg-actions">
+        <a class="pg-btn pg-btn--primary pg-btn--lg" id="pg-open-canvas" href="./static/">Open canvas</a>
+        <span class="pg-actions__sep" aria-hidden="true">|</span>
+        <a class="pg-btn pg-btn--lg" href="#documentation">Documentation</a>
+      </p>
+
+      <!--
+        `id="documentation"` sits on a wrapper THIS FILE owns, not on a heading inside the
+        generated fragment: the scroll target must not depend on a slug `build-docs.mjs`
+        mints from a markdown title.
+      -->
+      <section class="pg-docs__wrap" id="documentation">
+        <p class="pg-head__nav pg-docs__nav">
+          <a class="pg-btn" href="#install">Install</a>
+          <a class="pg-btn" href="#configure">Configure</a>
+          <a class="pg-btn" href="#api">API</a>
+          <a class="pg-btn" href="#troubleshooting">Troubleshooting</a>
+        </p>
+
+        <!--
+          Replaced at BUILD time by `docsPlugin()` in vite.config.ts with the fragment
+          `scripts/build-docs.mjs` renders from `docs/site/`. Real HTML in the shipped file:
+          no fetch, no client-side rendering, so the page is complete with scripts disabled
+          and indexable by a crawler that does not run them.
+
+          The marker is exact and the plugin THROWS if it finds this comment with no
+          fragment on disk -- see its own comment for why that is a hard failure.
+        -->
+        <!-- Generated by scripts/build-docs.mjs from docs/site/ -- do not edit, not checked in. -->
+<div class="pg-docs">
+<nav class="pg-docs__toc" aria-label="Documentation contents">
+  <p class="pg-docs__toctitle">Contents</p>
+  <ul class="pg-docs__toclist">
+    <li class="pg-docs__tocpage"><a class="pg-docs__toclink" href="#connectly-webchat">Connectly Webchat</a>
+      <ul class="pg-docs__toclist">
+        <li><a href="#what-you-need">What you need</a></li>
+        <li><a href="#what-it-is-not">What it is not</a></li>
+      </ul>
+    </li>
+    <li class="pg-docs__tocpage"><a class="pg-docs__toclink" href="#install">Install</a>
+      <ul class="pg-docs__toclist">
+        <li><a href="#the-script-tag">The script tag</a></li>
+        <li><a href="#the-npm-package">The npm package</a></li>
+        <li><a href="#react">React</a></li>
+        <li><a href="#any-other-framework-or-none">Any other framework, or none</a></li>
+        <li><a href="#server-rendering">Server rendering</a></li>
+        <li><a href="#one-integration-per-page">One integration per page</a></li>
+      </ul>
+    </li>
+    <li class="pg-docs__tocpage"><a class="pg-docs__toclink" href="#configure">Configure</a>
+      <ul class="pg-docs__toclist">
+        <li><a href="#the-precedence-chain">The precedence chain</a></li>
+        <li><a href="#config-fields">config fields</a></li>
+        <li><a href="#attributes">Attributes</a></li>
+        <li><a href="#react-props">React props</a></li>
+        <li><a href="#theming-with-css">Theming with CSS</a></li>
+      </ul>
+    </li>
+    <li class="pg-docs__tocpage"><a class="pg-docs__toclink" href="#api">API</a>
+      <ul class="pg-docs__toclist">
+        <li><a href="#windowconnectlywebchat-script-tag-only">window.ConnectlyWebchat — script tag only</a></li>
+        <li><a href="#connectly-webchat-both-integrations">&lt;connectly-webchat&gt; — both integrations</a></li>
+        <li><a href="#opening-and-closing-the-panel">Opening and closing the panel</a></li>
+        <li><a href="#events">Events</a></li>
+        <li><a href="#version">Version</a></li>
+      </ul>
+    </li>
+    <li class="pg-docs__tocpage"><a class="pg-docs__toclink" href="#troubleshooting">Troubleshooting</a>
+      <ul class="pg-docs__toclist">
+        <li><a href="#the-launcher-appears-but-chat-does-not-work-or-it-looks-unstyled">The launcher appears, but chat does not work — or it looks unstyled</a></li>
+        <li><a href="#a-key-i-just-created-looks-broken-for-the-first-minute">A key I just created looks broken for the first minute</a></li>
+        <li><a href="#npm-cannot-install-the-git-url">npm cannot install the git URL</a></li>
+        <li><a href="#two-launchers-or-a-transcript-that-splits-in-half">Two launchers, or a transcript that splits in half</a></li>
+        <li><a href="#referenceerror-htmlelement-is-not-defined-at-build-or-boot">ReferenceError: HTMLElement is not defined at build or boot</a></li>
+        <li><a href="#vue-warns-on-every-render-or-angular-throws-ng0304">Vue warns on every render, or Angular throws NG0304</a></li>
+        <li><a href="#the-element-moved-itself-into-body-and-my-framework-broke">The element moved itself into &lt;body&gt; and my framework broke</a></li>
+        <li><a href="#more-logging">More logging</a></li>
+        <li><a href="#support">Support</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  <div class="pg-docs__body">
+<article class="pg-docs__section" data-page="00-intro.md">
+<h2 class="pg-docs__page" id="connectly-webchat">Connectly Webchat</h2>
+<p>A floating launcher and a chat panel you add to any page. A visitor clicks the launcher,
+types, and the conversation lands in your Connectly inbox alongside every other channel.
+There is no page to build and no UI to write.</p>
+<h3 id="what-you-need">What you need</h3>
+<p>One thing: a <strong>client key</strong>, from the webchat settings page in your Connectly dashboard.
+Everything else — colours, the launcher&#39;s side and icon, the panel&#39;s size, the greeting —
+is stored against that key and fetched at runtime, which is why a working integration is
+two lines rather than a configuration file.</p>
+<p>The key goes in your page&#39;s HTML where anyone can read it. That is fine — it names your
+business, it does not authorise anything.</p>
+<h3 id="what-it-is-not">What it is not</h3>
+<p>It is not an iframe you size yourself, and it is not a component library. The widget lives
+in a shadow root and is <code>position: fixed</code> to a viewport corner, so it does not inherit
+your page&#39;s CSS and does not participate in your layout. Where you put the element in the
+DOM does not matter.</p>
+<p>It is also not something you should load twice — see &quot;One integration per page&quot; on the
+next page. Two integrations means two launchers, two sessions and two sockets for one
+visitor, and nothing errors.</p>
+</article>
+<article class="pg-docs__section" data-page="10-install.md">
+<h2 class="pg-docs__page" id="install">Install</h2>
+<p>Two paths, decided by a single question: does your site have an <code>npm install</code> step?</p>
+<ul>
+<li><strong>No build step</strong> — a CMS, a page builder, a static site, a tag manager, anywhere you can
+paste HTML — use the <strong>script tag</strong>.</li>
+<li><strong>Bundling your own frontend</strong> — React, Vue, Svelte, Solid, Angular — use the <strong>npm
+package</strong>. It ships ES modules and a typed React wrapper.</li>
+</ul>
+<h3 id="the-script-tag">The script tag</h3>
+<p>Paste this before the closing <code>&lt;/body&gt;</code> tag. <code>&lt;head&gt;</code> also works — the script defers
+itself until the page is ready either way.</p>
+<pre><code class="language-html">&lt;script defer src=&quot;https://webchat.connectly.ai/webchat2026.min.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;module&quot;&gt;
+  window.ConnectlyWebchat.init({ clientKey: &#39;&lt;your-client-key&gt;&#39; });
+&lt;/script&gt;
+</code></pre>
+<p>That is the whole integration. The launcher appears in the corner as soon as <code>init()</code> runs.</p>
+<p><strong>The shape of those two tags is load-bearing.</strong> Keep <code>defer</code> on the first, and keep
+<code>init()</code> in a <em>second</em> tag with <code>type=&quot;module&quot;</code>. Both attributes defer execution until the
+document has parsed, in document order; a plain inline <code>&lt;script&gt;</code> with neither runs first,
+against a global that is not there yet.</p>
+<p>If your platform lets you add markup but not run a script, skip <code>init()</code> and place the
+element directly. Both forms create the same element.</p>
+<pre><code class="language-html">&lt;script defer src=&quot;https://webchat.connectly.ai/webchat2026.min.js&quot;&gt;&lt;/script&gt;
+&lt;connectly-webchat client-key=&quot;&lt;your-client-key&gt;&quot;&gt;&lt;/connectly-webchat&gt;
+</code></pre>
+<h3 id="the-npm-package">The npm package</h3>
+<pre><code class="language-sh">npm i git+https://github.com/connectlyai/webchat.git#v1.1.0
+</code></pre>
+<p>A git URL rather than a registry name: the package is distributed from its own GitHub
+repository, which npm, pnpm and yarn all install from natively.</p>
+<p><strong>Always pin a tag.</strong> A git specifier resolves to a commit, so omit the fragment after <code>#</code>
+and you get whatever is on the default branch at install time, which moves under you.
+<code>#semver:^1.1.0</code> also works, resolving against the repository&#39;s tags. If the install asks
+for credentials, see &quot;npm cannot install the git URL&quot; under Troubleshooting.</p>
+<p><strong>ESM only, browser only.</strong> There is no CommonJS build, so reach it through <code>import</code> or a
+bundler, never <code>require()</code>.</p>
+<h3 id="react">React</h3>
+<pre><code class="language-tsx">&#39;use client&#39;; // Next.js App Router only — see &quot;Server rendering&quot; below.
+
+import { ConnectlyWebchat } from &#39;@connectly/webchat/react&#39;;
+
+export function App() {
+  return &lt;ConnectlyWebchat clientKey=&quot;&lt;your-client-key&gt;&quot; /&gt;;
+}
+</code></pre>
+<p>The component renders <code>null</code>. The widget is created imperatively and lives in <code>&lt;body&gt;</code>,
+outside your tree; unmounting the component ends the session. <code>react</code> and <code>react-dom</code> are
+optional peer dependencies, needed only for this entry point.</p>
+<h3 id="any-other-framework-or-none">Any other framework, or none</h3>
+<pre><code class="language-js">import &#39;@connectly/webchat&#39;;
+</code></pre>
+<p>That import <em>is</em> the integration: it defines the <code>&lt;connectly-webchat&gt;</code> custom element and
+configures the origin. Then put the element on the page.</p>
+<pre><code class="language-html">&lt;connectly-webchat client-key=&quot;&lt;your-client-key&gt;&quot;&gt;&lt;/connectly-webchat&gt;
+</code></pre>
+<p>Svelte, Vue, Solid and Angular all render custom elements natively, so the import plus the
+tag is everything — with two exceptions that break the build otherwise.</p>
+<p><strong>Vue</strong> needs <code>isCustomElement</code>, or the compiler treats the tag as a component it cannot
+resolve, warns on every render, and emits nothing:</p>
+<pre><code class="language-js">vue({ template: { compilerOptions: { isCustomElement: (tag) =&gt; tag === &#39;connectly-webchat&#39; } } })
+</code></pre>
+<p><strong>Angular</strong> needs <code>schemas: [CUSTOM_ELEMENTS_SCHEMA]</code> on the component, or the template
+fails with NG0304.</p>
+<p>Where you put the element in the DOM does not matter — it is a 0×0, <code>pointer-events: none</code>
+mount point, and the launcher is fixed to the viewport corner. One exception: an ancestor
+with a <code>transform</code>, <code>filter</code> or <code>contain</code> becomes the containing block for
+<code>position: fixed</code>, so the element relocates itself to <code>&lt;body&gt;</code> — which breaks any framework
+that thinks it still owns that node. Append to <code>&lt;body&gt;</code> yourself, or use the React wrapper.</p>
+<h3 id="server-rendering">Server rendering</h3>
+<p><strong>Never import the package on the server.</strong> It defines a custom element extending
+<code>HTMLElement</code>, which does not exist in a server runtime, so the <em>import itself</em> throws
+<code>ReferenceError: HTMLElement is not defined</code>. That includes <code>@connectly/webchat/react</code>,
+which imports the main entry.</p>
+<p>Next.js, both routers — load it through <code>next/dynamic</code> with <code>ssr: false</code>, because even a
+client component is prerendered during <code>next build</code>:</p>
+<pre><code class="language-tsx">&#39;use client&#39;; // App Router only; also what allows `ssr: false` here.
+
+import dynamic from &#39;next/dynamic&#39;;
+
+const ConnectlyWebchat = dynamic(
+  () =&gt; import(&#39;@connectly/webchat/react&#39;).then((m) =&gt; m.ConnectlyWebchat),
+  { ssr: false },
+);
+
+export function Webchat() {
+  return &lt;ConnectlyWebchat clientKey=&quot;&lt;your-client-key&gt;&quot; /&gt;;
+}
+</code></pre>
+<p>Everywhere else — Remix, Nuxt, Astro, SvelteKit — the rule is the same: reach it from a
+browser-only path (a dynamic <code>import()</code> in a mount or effect hook, a <code>&lt;ClientOnly&gt;</code>
+wrapper, <code>client:only</code>, a plain module <code>&lt;script&gt;</code>), never a static import at the top of a
+shared module.</p>
+<h3 id="one-integration-per-page">One integration per page</h3>
+<p><strong>Do not load the script tag and the npm package on the same page.</strong></p>
+<p>You get two launchers, two sessions and two sockets for one visitor, and the transcript
+splits unpredictably between them. Nothing errors and nothing warns — multiple widgets on
+one page is deliberately supported for other cases — so this is a bug you will only find
+by looking at it.</p>
+</article>
+<article class="pg-docs__section" data-page="20-configure.md">
+<h2 class="pg-docs__page" id="configure">Configure</h2>
+<p><strong>Most of the appearance is not configured in code.</strong> Colours, the launcher&#39;s side and
+icon, the panel&#39;s size and the greeting are stored against your client key in the
+Connectly dashboard and fetched at runtime, so the common case needs no config at all —
+change it in the dashboard and every page using that key follows, with no redeploy.
+Everything below is for what the dashboard cannot cover: a per-page override, a value
+driven by your own state, or a theme that has to match the page it sits on.</p>
+<h3 id="the-precedence-chain">The precedence chain</h3>
+<p>Four layers, lowest to highest:</p>
+<pre><code>built-in defaults  &lt;  dashboard settings  &lt;  HTML attributes  &lt;  `config`
+</code></pre>
+<p>They merge <strong>per group</strong>, not wholesale, so <code>{ launcher: { side: &#39;left&#39; } }</code> moves the
+launcher without resetting its size, icon and offsets to defaults.</p>
+<pre><code class="language-tsx">&lt;ConnectlyWebchat
+  clientKey=&quot;&lt;your-client-key&gt;&quot;
+  config={{
+    theme: { accent: &#39;#6c2bd9&#39;, colorScheme: &#39;auto&#39; },
+    launcher: { side: &#39;left&#39;, label: &#39;Chat with us&#39; },
+    panel: { width: 380, height: 560 },
+  }}
+/&gt;
+</code></pre>
+<p>Outside React, assigning <code>config</code> alone repaints nothing — it is a plain field, not an
+attribute, so call <code>reload()</code> after:</p>
+<pre><code class="language-js">const el = document.querySelector(&#39;connectly-webchat&#39;);
+el.config = { theme: { accent: &#39;#c026d3&#39; } };
+el.reload();
+</code></pre>
+<blockquote>
+<p><strong>Each distinct <code>config</code> value costs a network round-trip.</strong> Values are compared
+structurally, so an equal object is free — but bind <code>config</code> to a colour picker and you
+send one request per intermediate value. Memoise it, apply on commit, or for a live
+preview drive the <code>--cwc-*</code> custom properties instead (see &quot;Theming with CSS&quot; below).</p>
+</blockquote>
+<h3 id="config-fields"><code>config</code> fields</h3>
+<p><code>config</code> is a partial <code>WidgetUi</code> — the same shape the dashboard saves.</p>
+<ul>
+<li><strong><code>launcher</code></strong> — <code>side</code>, <code>offsetX</code>, <code>offsetY</code>, <code>size</code>, <code>shape</code> (<code>circle</code> | <code>pill</code>),
+<code>label</code>, <code>ariaLabel</code>, <code>icon</code> (<code>{ kind: &#39;default&#39; | &#39;url&#39; | &#39;none&#39;, url }</code>)</li>
+<li><strong><code>panel</code></strong> — <code>width</code>, <code>height</code>, <code>radius</code></li>
+<li><strong><code>theme</code></strong> — <code>accent</code>, <code>accentText</code>, <code>surface</code>, <code>surfaceAlt</code>, <code>text</code>, <code>textMuted</code>,
+<code>border</code>, <code>bubbleVisitor</code>, <code>bubbleVisitorText</code>, <code>bubbleAgent</code>, <code>bubbleAgentText</code>,
+<code>bubbleRadius</code>, <code>fontFamily</code>, <code>colorScheme</code> (<code>light</code> | <code>dark</code> | <code>auto</code>)</li>
+<li><strong><code>zIndex</code></strong></li>
+<li><strong><code>collision</code></strong> — <code>bottomOffsetPx</code>, <code>maxBottomOffsetPx</code></li>
+<li><strong><code>mobile</code></strong> — <code>breakpointPx</code>, <code>launcher</code> (<code>offsetX</code>, <code>offsetY</code>, <code>size</code>), <code>panel</code>
+(<code>fullscreen</code>, <code>width</code>, <code>height</code>, <code>radius</code> — <code>0</code> means &quot;inherit the desktop value&quot;)</li>
+</ul>
+<p>Visible in autocomplete but <strong>not yet acted on</strong>, so setting them does nothing:
+<code>behavior.autoOpen*</code>, <code>navigation.linkTarget</code>, <code>paths.*</code>, <code>panel.anchor</code>,
+<code>launcher.hideOnMobile</code>, <code>collision.bottomOffsetSelectors</code>,
+<code>collision.hideBehindModalDialog</code>, <code>position</code>, <code>bundleVersion</code>.</p>
+<p><strong>Only the config stored for your business is range-checked.</strong> Values passed through
+<code>config</code> or an attribute are merged in as given, so <code>panel.width: 5000</code> is a 5000px panel.
+Use the dashboard&#39;s ranges as your bounds.</p>
+<p>And <code>fontFamily</code> <strong>names</strong> a face, it cannot load one: <code>@font-face</code> is ignored inside a
+shadow root, so declare the face in your own stylesheet and name it here.</p>
+<h3 id="attributes">Attributes</h3>
+<p>Every attribute is optional except <code>client-key</code>.</p>
+<table>
+<thead>
+<tr>
+<th>attribute</th>
+<th>meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>client-key</code></td>
+<td>Required.</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>The panel heading — <strong>not</strong> a tooltip, despite the attribute name.</td>
+</tr>
+<tr>
+<td><code>width</code>, <code>height</code></td>
+<td>Panel size in bare pixels: <code>width=&quot;380&quot;</code>. <code>&quot;380px&quot;</code> parses to <code>NaN</code> and is ignored. Clamped to 300–560 / 360–900 and to the viewport.</td>
+</tr>
+<tr>
+<td><code>side</code></td>
+<td><code>left</code> or <code>right</code>.</td>
+</tr>
+<tr>
+<td><code>offset-x</code>, <code>offset-y</code></td>
+<td>Launcher offset from its corner, in pixels.</td>
+</tr>
+<tr>
+<td><code>z-index</code>, <code>bottom-offset-px</code></td>
+<td>Stacking, and a flat lift above a cookie bar or a sticky cart.</td>
+</tr>
+<tr>
+<td><code>open</code></td>
+<td>Present = panel open. <strong>Boolean-by-presence</strong>, not <code>&quot;true&quot;</code> / <code>&quot;false&quot;</code>.</td>
+</tr>
+<tr>
+<td><code>log-level</code></td>
+<td><code>silent</code> | <code>error</code> | <code>warn</code> | <code>info</code> | <code>debug</code>. Applies immediately, including after mount.</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong><code>open</code> in JSX.</strong> React stringifies booleans on custom elements, so <code>open={false}</code>
+renders <code>open=&quot;false&quot;</code> — and the element only checks whether the attribute is <em>present</em>,
+so that reads as open. Write <code>open={isOpen ? &#39;&#39; : undefined}</code>; <code>undefined</code> is the only
+value React removes an attribute for. The TypeScript types enforce it.</p>
+</blockquote>
+<h3 id="react-props">React props</h3>
+<table>
+<thead>
+<tr>
+<th>prop</th>
+<th>reactive</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>clientKey</code></td>
+<td>no</td>
+<td>Changing it remounts the widget: a different key is a different business, so session, room and transcript all reset.</td>
+</tr>
+<tr>
+<td><code>config</code></td>
+<td>yes</td>
+<td>Presentation overrides. An inline object literal is fine — see the round-trip warning above.</td>
+</tr>
+<tr>
+<td><code>open</code></td>
+<td>yes</td>
+<td>Omit it and the widget owns its own state; pass it and you own it, and a value you never update pins the panel there. Mounting with <code>open={true}</code> comes up showing the panel, with no closed-then-open flash.</td>
+</tr>
+<tr>
+<td><code>onOpenChange</code></td>
+<td>—</td>
+<td><code>(open: boolean) =&gt; void</code>, fired for every open and close whoever caused it. On its own, without <code>open</code>, it is the read-only version: the widget stays in charge and you just observe. An inline arrow never re-mounts the widget.</td>
+</tr>
+</tbody></table>
+<p><code>log-level</code> is not a React prop: set it with <code>setAttribute</code>, or write it directly in JSX.</p>
+<h3 id="theming-with-css">Theming with CSS</h3>
+<p>The <code>--cwc-*</code> custom properties are the supported theming API. Every resolved value is
+written to a custom property on the host element, with no <code>!important</code> anywhere in that
+path, so yours wins:</p>
+<pre><code class="language-css">connectly-webchat {
+  --cwc-accent: #6c2bd9;
+  --cwc-launcher-size: 56px;
+  --cwc-panel-radius: 20px;
+}
+</code></pre>
+<p><code>--cwc-*</code> is desktop and <code>--cwc-m-*</code> is mobile, switched by a media query. Lengths take
+units here (<code>56px</code>), unlike <code>config</code>, which takes plain numbers. This is also the layer
+for anything that changes rapidly — it costs no network round-trip at all.</p>
+<p><strong>Reaching inside the shadow root is not supported.</strong> Class names and structure change
+without notice; a stylesheet that depends on them will break on an ordinary widget update.</p>
+</article>
+<article class="pg-docs__section" data-page="30-api.md">
+<h2 class="pg-docs__page" id="api">API</h2>
+<p>Which API you get depends on which integration you chose.</p>
+<ul>
+<li>The <strong>script tag</strong> publishes a page global, <code>window.ConnectlyWebchat</code>.</li>
+<li>The <strong>npm package</strong> publishes none — the element itself is the API. Reach it from outside
+your component tree with <code>document.querySelector(&#39;connectly-webchat&#39;)</code>.</li>
+</ul>
+<h3 id="windowconnectlywebchat-script-tag-only"><code>window.ConnectlyWebchat</code> — script tag only</h3>
+<pre><code class="language-ts">window.ConnectlyWebchat: {
+  init(options): Element | null;
+  destroy(): void;
+  open(): void;
+  close(): void;
+  toggle(): void;
+  isOpen(): boolean;
+  isMounted(): boolean;
+  element(): Element | null;
+  version: string;
+}
+</code></pre>
+<p><code>init(options)</code> accepts:</p>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>clientKey</code></td>
+<td>Required.</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>The panel heading.</td>
+</tr>
+<tr>
+<td><code>width</code>, <code>height</code></td>
+<td>Panel size. A bare number (<code>380</code>) or a px string (<code>&#39;380px&#39;</code>) both work; any other unit is dropped with a console warning.</td>
+</tr>
+<tr>
+<td><code>logLevel</code></td>
+<td><code>silent</code> | <code>error</code> | <code>warn</code> | <code>info</code> | <code>debug</code>.</td>
+</tr>
+<tr>
+<td><code>config</code></td>
+<td>Presentation overrides — the same object the npm package&#39;s <code>config</code> prop takes.</td>
+</tr>
+<tr>
+<td><code>open</code></td>
+<td>Open the panel as soon as it is ready, instead of waiting for a click.</td>
+</tr>
+<tr>
+<td><code>onMountedChange</code></td>
+<td>Called with <code>true</code>/<code>false</code> as the widget is added to / removed from the page.</td>
+</tr>
+<tr>
+<td><code>onOpenChange</code></td>
+<td>Called with <code>true</code>/<code>false</code> as the panel opens/closes. This is the one you want for a toggle button&#39;s label.</td>
+</tr>
+</tbody></table>
+<p><strong>Calling <code>init()</code> twice does not create a second widget.</strong> It returns the existing element
+and applies any new options to it — except <code>clientKey</code>, which cannot be changed on a live
+widget. Remove the old integration first if you need a different key.</p>
+<p><code>isMounted()</code> asks whether the widget is on the page at all (true from shortly after
+<code>init()</code> until <code>destroy()</code>); <code>isOpen()</code> asks whether the panel is showing. <code>isOpen()</code> is
+almost always the one you want, paired with <code>onOpenChange</code>.</p>
+<h3 id="connectly-webchat-both-integrations"><code>&lt;connectly-webchat&gt;</code> — both integrations</h3>
+<p>The element is registered by the script tag and by the package&#39;s import alike, and it is
+the whole API on the npm path. See <a href="#attributes">Configure</a> for the attribute list.</p>
+<pre><code class="language-js">const el = document.querySelector(&#39;connectly-webchat&#39;);
+el.openPanel();
+el.closePanel();
+el.toggle();
+el.open;   // boolean, reflected to the attribute
+el.config = { theme: { accent: &#39;#c026d3&#39; } };
+el.reload(); // `config` is a plain field; assigning it repaints nothing on its own
+</code></pre>
+<p>In React, prefer the declarative <code>open</code> / <code>onOpenChange</code> props over reaching for the
+element — the wrapper&#39;s <code>onOpenChange</code> is exactly the element&#39;s <code>:open</code> and <code>:close</code>
+events on its own node.</p>
+<h3 id="opening-and-closing-the-panel">Opening and closing the panel</h3>
+<p>The names differ by path — <code>open()</code> / <code>close()</code> exist <strong>only</strong> on the script tag&#39;s page
+global, and the element&#39;s methods are <code>openPanel()</code> / <code>closePanel()</code> — but they are
+equivalent: the global delegates to the element.</p>
+<pre><code class="language-tsx">// React, declaratively:
+&lt;ConnectlyWebchat clientKey=&quot;&lt;your-client-key&gt;&quot; open={isOpen ? &#39;&#39; : undefined} onOpenChange={setIsOpen} /&gt;
+</code></pre>
+<h3 id="events">Events</h3>
+<p>Events are dispatched on the element and are <code>bubbles</code> / <code>composed</code>, so a page-level
+listener works without holding a reference to the element:</p>
+<pre><code class="language-js">document.addEventListener(&#39;connectly-webchat:open&#39;, (e) =&gt; {
+  console.log(e.detail);
+});
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>event</th>
+<th>when</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>connectly-webchat:ready</code></td>
+<td>The widget has mounted and its config has resolved. Carries the widget version.</td>
+</tr>
+<tr>
+<td><code>connectly-webchat:open</code></td>
+<td>The panel opened, whoever caused it.</td>
+</tr>
+<tr>
+<td><code>connectly-webchat:close</code></td>
+<td>The panel closed, whoever caused it.</td>
+</tr>
+<tr>
+<td><code>connectly-webchat:error</code></td>
+<td>Something failed hard enough to stop the conversation.</td>
+</tr>
+<tr>
+<td><code>connectly-webchat:config-warning</code></td>
+<td>A config value was rejected or ignored.</td>
+</tr>
+</tbody></table>
+<p>Payloads are on <code>event.detail</code> — see <code>WebchatElementEventDetail</code> in the package&#39;s types.</p>
+<h3 id="version">Version</h3>
+<p><code>WEBCHAT_ELEMENT_VERSION</code> (exported from the package, carried on the <code>ready</code> event, and
+available as <code>window.ConnectlyWebchat.version</code> on the script-tag path) identifies the
+widget code. It is the first thing Connectly support will ask for. The npm package carries
+its own version, on its own schedule; the two are not expected to match.</p>
+</article>
+<article class="pg-docs__section" data-page="40-troubleshoot.md">
+<h2 class="pg-docs__page" id="troubleshooting">Troubleshooting</h2>
+<p>The widget fails quietly more often than it fails loudly, which is what makes these worth
+naming.</p>
+<h3 id="the-launcher-appears-but-chat-does-not-work-or-it-looks-unstyled">The launcher appears, but chat does not work — or it looks unstyled</h3>
+<p><strong>Check the client key first.</strong> An unrecognized or revoked key makes the widget fall back
+to a default appearance and fail to start a conversation, <em>without</em> stopping the launcher
+from rendering. So a launcher on the page proves the script loaded; it proves nothing
+about the key.</p>
+<p>Turn logging up (below) and look in the console for a warning naming the client key, or a
+&quot;widget config unavailable&quot; / &quot;unknown or inactive&quot; message.</p>
+<h3 id="a-key-i-just-created-looks-broken-for-the-first-minute">A key I just created looks broken for the first minute</h3>
+<p>Expected, not a bug. A newly issued key can take <strong>up to 60 seconds</strong> to become active
+everywhere, and a revoked key can likewise take up to 60 seconds to actually stop working.
+Wait a minute and reload before concluding the integration is wrong — and do not treat a
+revocation as an incident response tool on its own.</p>
+<h3 id="npm-cannot-install-the-git-url">npm cannot install the git URL</h3>
+<p>If HTTPS asks for credentials, the two variants that usually help:</p>
+<pre><code class="language-sh"># A developer machine set up with an SSH key rather than a token:
+npm i git+ssh://git@github.com/connectlyai/webchat.git#v1.1.0
+
+# CI, with a token in the environment and no interactive prompt available:
+git config --global url.&quot;https://x-access-token:$GITHUB_TOKEN@github.com/&quot;.insteadOf &quot;https://github.com/&quot;
+</code></pre>
+<p><code>Repository not found</code>, or a credential prompt that will not take your password, almost
+always means the token lacks read access to the repository — not that the tag is wrong.</p>
+<h3 id="two-launchers-or-a-transcript-that-splits-in-half">Two launchers, or a transcript that splits in half</h3>
+<p>You have two integrations on one page — almost always the paste-in <code>&lt;script&gt;</code> <em>and</em> the
+npm package, one of them added by a tag manager or a theme rather than by you. Nothing
+errors, because multiple widgets on one page is a supported case. Search the rendered page
+for both <code>webchat2026.min.js</code> and any bundled import of <code>@connectly/webchat</code>, and remove
+one.</p>
+<h3 id="referenceerror-htmlelement-is-not-defined-at-build-or-boot"><code>ReferenceError: HTMLElement is not defined</code> at build or boot</h3>
+<p>The package was imported on the server. The import itself throws, before any component
+renders, because the module defines a custom element extending <code>HTMLElement</code>. This includes
+<code>@connectly/webchat/react</code>, and it includes a Next.js <em>client</em> component, which is still
+prerendered during <code>next build</code>. The fix is a browser-only import path — see &quot;Server
+rendering&quot; under Install.</p>
+<h3 id="vue-warns-on-every-render-or-angular-throws-ng0304">Vue warns on every render, or Angular throws NG0304</h3>
+<p>Both mean the framework does not know <code>&lt;connectly-webchat&gt;</code> is a custom element.</p>
+<ul>
+<li><strong>Vue</strong> — add <code>isCustomElement</code> to the compiler options.</li>
+<li><strong>Angular</strong> — add <code>CUSTOM_ELEMENTS_SCHEMA</code> to the component&#39;s <code>schemas</code>.</li>
+</ul>
+<p>Vue&#39;s failure is the nastier of the two: it warns rather than throwing, and emits no
+element at all, so the page comes up looking like the script simply did not load.</p>
+<h3 id="the-element-moved-itself-into-body-and-my-framework-broke">The element moved itself into <code>&lt;body&gt;</code> and my framework broke</h3>
+<p>An ancestor with a <code>transform</code>, <code>filter</code> or <code>contain</code> becomes the containing block for
+<code>position: fixed</code>, so the element relocates itself to <code>&lt;body&gt;</code> — and a framework that still
+thinks it owns that node will throw on the next update. Append the element to <code>&lt;body&gt;</code>
+yourself, or use the React wrapper, which expects it.</p>
+<h3 id="more-logging">More logging</h3>
+<p>Raise the console verbosity of a production build:</p>
+<pre><code class="language-html">&lt;connectly-webchat client-key=&quot;&lt;your-client-key&gt;&quot; log-level=&quot;debug&quot;&gt;&lt;/connectly-webchat&gt;
+</code></pre>
+<pre><code class="language-js">window.ConnectlyWebchat.init({ clientKey: &#39;&lt;your-client-key&gt;&#39;, logLevel: &#39;debug&#39; });
+</code></pre>
+<p>That separates &quot;wrong key&quot; from &quot;wrong integration&quot; from &quot;network&quot;: you see whether the
+config loaded, whether a session minted, and whether the socket connected.</p>
+<h3 id="support">Support</h3>
+<p>Escalate through your usual Connectly channel with the widget version
+(<code>window.ConnectlyWebchat.version</code>, or the exported <code>WEBCHAT_ELEMENT_VERSION</code>) and your
+client key, plus a console log captured at <code>log-level=&quot;debug&quot;</code>.</p>
+</article>
+  </div>
+</div>
+
+      </section>
+      <!--
+        THE SITE FOOTER, in the markup on every page rather than rendered by a shared
+        `mountFooter()`.
+
+        Static content on a documentation site that has to be complete with scripts
+        disabled -- the same rule the spliced prose and the fallback snippet in `index.html`
+        follow. What that costs is seven copies of six lines; what a shared JS footer would
+        cost is a page whose attribution disappears in exactly the conditions the rest of
+        this site was built to survive.
+
+        The wordmark ships BLACK (it is the one Connectly publishes) and this page is dark,
+        so `.pg-foot__logo` inverts it -- see playground.css.
+      -->
+      <footer class="pg-foot">
+        <img class="pg-foot__logo" src="./brand/connectly.png" alt="Connectly" width="123" height="25" />
+        <p class="pg-foot__line">
+          &copy; 2025 All rights reserved. Connectly Inc. Engineered with
+          <span aria-hidden="true">&#10084;&#65039;</span><span class="pg-sr">love</span>, globally.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>
